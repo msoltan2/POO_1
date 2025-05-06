@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include "Item.h"
+#include "GameExceptions.h"
 
 class Player {
 private:

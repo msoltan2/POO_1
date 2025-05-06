@@ -33,19 +33,19 @@ bool Room::removeItem(const std::string& itemName, Item& removedItem) {
     for (auto it = items.begin(); it != items.end(); ++it) {
         if (it->getName() == itemName) {
             removedItem = *it;
+            std::cout << "Removed " << removedItem.getValue() << std::endl;
             items.erase(it);
             return true;
         }
     }
-    return false;
+    throw RoomException("Item not found in room: " + itemName);
 }
 
 bool Room::connectRoom(const std::string& direction, int roomIndex) {
     if (exits.find(direction) != exits.end()) {
-        std::cout << "Exit already exists in that direction." << std::endl;
-        return false;
+        throw RoomException("Exit already exists in that direction");
     }
-    
+
     exits[direction] = roomIndex;
     return true;
 }
@@ -63,7 +63,7 @@ int Room::getExitIndex(const std::string& direction) const {
     if (it != exits.end()) {
         return it->second;
     }
-    return -1;
+    throw RoomException("Exit not found in direction: " + direction);
 }
 
 void Room::listItems() const {

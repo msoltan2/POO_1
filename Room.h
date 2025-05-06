@@ -6,6 +6,7 @@
 #include <map>
 #include <iostream>
 #include "Item.h"
+#include "GameExceptions.h"
 
 class Room {
 private:

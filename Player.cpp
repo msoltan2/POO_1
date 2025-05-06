@@ -1,12 +1,13 @@
 #include "Player.h"
 #include <algorithm>
+#include "GameExceptions.h"
 
 Player::Player(const std::string& name, int startRoom, int health, int maxItems)
     : name(name), currentRoom(startRoom), health(health), maxItems(maxItems) {
 }
 
 Player::Player(const Player& other)
-    : name(other.name), currentRoom(other.currentRoom), 
+    : name(other.name), currentRoom(other.currentRoom),
       inventory(other.inventory), health(other.health), maxItems(other.maxItems) {
 }
 
@@ -26,10 +27,9 @@ Player::~Player() {
 
 bool Player::addToInventory(const Item& item) {
     if (inventory.size() >= static_cast<size_t>(maxItems)) {
-        std::cout << "Inventory is full!" << std::endl;
-        return false;
+        throw InventoryFullException();
     }
-    
+
     inventory.push_back(item);
     std::cout << "Added " << item.getName() << " to inventory." << std::endl;
     return true;
@@ -44,9 +44,8 @@ bool Player::removeFromInventory(const std::string& itemName, Item& removedItem)
             return true;
         }
     }
-    
-    std::cout << "You don't have " << itemName << " in your inventory." << std::endl;
-    return false;
+
+    throw ItemNotFoundException(itemName);
 }
 
 bool Player::useItem(const std::string& itemName) {
@@ -59,9 +58,8 @@ bool Player::useItem(const std::string& itemName) {
             return result;
         }
     }
-    
-    std::cout << "You don't have " << itemName << " in your inventory." << std::endl;
-    return false;
+
+    throw ItemNotFoundException(itemName);
 }
 
 void Player::displayInventory() const {

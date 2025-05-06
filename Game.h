@@ -7,6 +7,7 @@
 #include <fstream>
 #include "Room.h"
 #include "Player.h"
+#include "GameExceptions.h"
 
 class Game {
 private:

@@ -35,8 +35,7 @@ void Game::initializeRooms() {
     path.connectRoom("south", 0);
     path.connectRoom("east", 2);
     cave.connectRoom("west", 1);
-    // Maybe generate rooms randomly
-    
+
     rooms.push_back(entrance);
     rooms.push_back(path);
     rooms.push_back(cave);
@@ -44,18 +43,21 @@ void Game::initializeRooms() {
 
 void Game::initializeItems() {
     Item map("map", "A worn map of the forest area", true, 5);
-    Item sword("sword", "A rusty old sword", true, 10);
     Item gem("gemstone", "A glowing blue gemstone", false, 20);
-    
+    Weapon sword("sword", "A worn sword", 10, 15);
+    ConsumableItem potion("hp", "Health potion", 25, 10);
+
+
     rooms[0].addItem(map);
     rooms[1].addItem(sword);
+    rooms[1].addItem(potion);
     rooms[2].addItem(gem);
 }
 
 bool Game::processCommand(const std::string& command) {
     std::string cmd = command;
     std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
-    
+
     if (cmd == "help") {
         displayHelp();
         return true;
@@ -76,14 +78,19 @@ bool Game::processCommand(const std::string& command) {
         std::string itemName = cmd.substr(5);
         int currentRoomIndex = player.getCurrentRoom();
         Item takenItem("", "", false, 0);
-        
-        if (rooms[currentRoomIndex].containsItem(itemName)) {
-            if (rooms[currentRoomIndex].removeItem(itemName, takenItem)) {
-                player.addToInventory(takenItem);
+
+        try {
+            if (rooms[currentRoomIndex].containsItem(itemName)) {
+                if (rooms[currentRoomIndex].removeItem(itemName, takenItem)) {
+                    player.addToInventory(takenItem);
+                    return true;
+                }
+            } else {
+                std::cout << "There is no " << itemName << " here." << std::endl;
                 return true;
             }
-        } else {
-            std::cout << "There is no " << itemName << " here." << std::endl;
+        } catch (const GameException& e) {
+            std::cout << e.what() << std::endl;
             return true;
         }
     }
@@ -91,29 +98,42 @@ bool Game::processCommand(const std::string& command) {
         std::string itemName = cmd.substr(5);
         int currentRoomIndex = player.getCurrentRoom();
         Item droppedItem("", "", false, 0);
-        
-        if (player.removeFromInventory(itemName, droppedItem)) {
-            rooms[currentRoomIndex].addItem(droppedItem);
+
+        try {
+            if (player.removeFromInventory(itemName, droppedItem)) {
+                rooms[currentRoomIndex].addItem(droppedItem);
+                return true;
+            }
+        } catch (const GameException& e) {
+            std::cout << e.what() << std::endl;
             return true;
         }
-        return true;
     }
     else if (cmd.substr(0, 3) == "use" && cmd.length() > 4) {
         std::string itemName = cmd.substr(4);
-        player.useItem(itemName);
+        try {
+            player.useItem(itemName);
+        } catch (const GameException& e) {
+            std::cout << e.what() << std::endl;
+        }
         return true;
     }
     else if (cmd == "north" || cmd == "south" || cmd == "east" || cmd == "west") {
         int currentRoomIndex = player.getCurrentRoom();
-        
-        if (rooms[currentRoomIndex].hasExit(cmd)) {
-            int newRoomIndex = rooms[currentRoomIndex].getExitIndex(cmd);
-            player.move(newRoomIndex);
-            rooms[newRoomIndex].enter();
-            displayCurrentRoom();
-            return true;
-        } else {
-            std::cout << "You cannot go that way." << std::endl;
+
+        try {
+            if (rooms[currentRoomIndex].hasExit(cmd)) {
+                int newRoomIndex = rooms[currentRoomIndex].getExitIndex(cmd);
+                player.move(newRoomIndex);
+                rooms[newRoomIndex].enter();
+                displayCurrentRoom();
+                return true;
+            } else {
+                std::cout << "You cannot go that way." << std::endl;
+                return true;
+            }
+        } catch (const GameException& e) {
+            std::cout << e.what() << std::endl;
             return true;
         }
     }
